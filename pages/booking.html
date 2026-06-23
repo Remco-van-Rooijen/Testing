@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Consultation | Remco van Rooijen</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/booking.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>Remco van Rooijen</h1>
+                    <p class="subtitle">SAFe 6.0 Implementation Consultant</p>
+                </div>
+                <nav class="nav">
+                    <ul>
+                        <li><a href="../index.html#home">Home</a></li>
+                        <li><a href="../index.html#about">About</a></li>
+                        <li><a href="../index.html#services">Services</a></li>
+                        <li><a href="../index.html#blog">Blog</a></li>
+                        <li><a href="../index.html#contact">Contact</a></li>
+                    </ul>
+                </nav>
+                <a href="../index.html" class="cta-button">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Booking Hero -->
+    <section class="booking-hero">
+        <div class="container">
+            <div class="booking-hero-content">
+                <div class="booking-hero-text">
+                    <h1><i class="fas fa-calendar-check"></i> Book a Consultation</h1>
+                    <p>Schedule a meeting with Remco van Rooijen to discuss your SAFe 6.0 implementation, Agile transformation, or coaching needs.</p>
+                </div>
+                <div class="booking-hero-image">
+                    <img src="https://via.placeholder.com/400x300?text=Consultation+Session" alt="Consultation Session">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Steps -->
+    <section class="booking-steps">
+        <div class="container">
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Select Service</h3>
+                        <p>Choose the type of consultation you need</p>
+                    </div>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Pick Date & Time</h3>
+                        <p>Select a convenient time slot from the calendar</p>
+                    </div>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Confirm Details</h3>
+                        <p>Enter your information and confirm the booking</p>
+                    </div>
+                </div>
+                <div class="step-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Get Confirmation</h3>
+                        <p>Receive an email with calendar invitation</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Service Selection -->
+    <section class="service-selection">
+        <div class="container">
+            <h2><i class="fas fa-concierge-bell"></i> Select a Service</h2>
+            <div class="services-grid" id="servicesGrid">
+                <!-- Services will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Calendar Section -->
+    <section class="calendar-section">
+        <div class="container">
+            <h2><i class="fas fa-calendar-alt"></i> Select Date & Time</h2>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button class="calendar-nav" id="prevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h3 id="currentMonthYear">Loading...</h3>
+                    <button class="calendar-nav" id="nextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
+                <div class="calendar-days" id="calendarDays">
+                    <!-- Days will be loaded here -->
+                </div>
+            </div>
+            <div class="time-slots-container">
+                <h3>Available Time Slots for <span id="selectedDate">No date selected</span></h3>
+                <div class="time-slots" id="timeSlots">
+                    <p class="no-date-selected">Please select a date first to see available time slots.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Form Section -->
+    <section class="booking-form-section">
+        <div class="container">
+            <h2><i class="fas fa-user-edit"></i> Your Details</h2>
+            <form id="bookingForm" class="booking-form">
+                <div class="form-section">
+                    <h3>Contact Information</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="customerName">Full Name *</label>
+                            <input type="text" id="customerName" name="customerName" required placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerEmail">Email Address *</label>
+                            <input type="email" id="customerEmail" name="customerEmail" required placeholder="Enter your email">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">Phone Number</label>
+                            <input type="tel" id="customerPhone" name="customerPhone" placeholder="Enter your phone number">
+                        </div>
+                        <div class="form-group">
+                            <label for="customerCompany">Company</label>
+                            <input type="text" id="customerCompany" name="customerCompany" placeholder="Enter your company name">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Booking Details</h3>
+                    <div class="booking-summary" id="bookingSummary">
+                        <p>No service or time selected. Please select a service and time slot above.</p>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Additional Information</h3>
+                    <div class="form-group full-width">
+                        <label for="customerNotes">Special Requests or Notes</label>
+                        <textarea id="customerNotes" name="customerNotes" rows="4" placeholder="Any specific topics you'd like to discuss or special requirements..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="secondary-button" id="cancelBooking">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="primary-button" id="submitBooking" disabled>
+                        <i class="fas fa-calendar-check"></i> Confirm Booking
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Success Modal -->
+    <div class="modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-header success">
+                <h2><i class="fas fa-check-circle"></i> Booking Confirmed!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="success-content">
+                    <div class="success-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3 id="successTitle">Your consultation has been booked!</h3>
+                    <div class="success-details" id="successDetails">
+                        <!-- Details will be inserted here -->
+                    </div>
+                    <p class="success-message">
+                        You will receive a confirmation email with a calendar invitation (ICS file) 
+                        that you can add to Outlook, Google Calendar, or any other calendar application.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="primary-button" id="closeSuccessModal">
+                    <i class="fas fa-home"></i> Back to Home
+                </button>
+                <button class="secondary-button" id="downloadICS">
+                    <i class="fas fa-download"></i> Download Calendar File
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processing your booking...</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Remco van Rooijen</h3>
+                    <p>SAFe 6.0 Implementation Consultant</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="../index.html#home">Home</a></li>
+                        <li><a href="../index.html#services">Services</a></li>
+                        <li><a href="../index.html#about">About</a></li>
+                        <li><a href="../index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Connect With Me</h3>
+                    <div class="social-links">
+                        <a href="#" target="_blank"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-github"></i></a>
+                        <a href="#" target="_blank"><i class="fab fa-medium"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Remco van Rooijen. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Scripts -->
+    <script src="../js/booking.js"></script>
+</body>
+</html>

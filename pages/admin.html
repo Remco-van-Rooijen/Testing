@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Remco van Rooijen Consulting</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Admin Header -->
+        <header class="admin-header">
+            <div class="admin-header-content">
+                <div class="admin-logo">
+                    <h1><i class="fas fa-user-shield"></i> Admin Dashboard</h1>
+                    <p>Remco van Rooijen Consulting</p>
+                </div>
+                <div class="admin-user">
+                    <span class="admin-greeting">Welcome, Admin</span>
+                    <button class="admin-logout" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Admin Navigation -->
+        <nav class="admin-nav">
+            <ul>
+                <li class="active">
+                    <a href="#bookings">
+                        <i class="fas fa-calendar-check"></i> Bookings
+                    </a>
+                </li>
+                <li>
+                    <a href="#services">
+                        <i class="fas fa-concierge-bell"></i> Services
+                    </a>
+                </li>
+                <li>
+                    <a href="#settings">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </li>
+                <li>
+                    <a href="#statistics">
+                        <i class="fas fa-chart-bar"></i> Statistics
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Bookings Section -->
+            <section id="bookings" class="admin-section active">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt"></i> Manage Bookings</h2>
+                    <div class="section-actions">
+                        <button class="secondary-button" id="refreshBookings">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="primary-button" id="exportBookings">
+                            <i class="fas fa-file-export"></i> Export to CSV
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Booking Stats -->
+                <div class="booking-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon total">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="totalBookings">0</span>
+                            <span class="stat-label">Total Bookings</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon confirmed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="confirmedBookings">0</span>
+                            <span class="stat-label">Confirmed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="pendingBookings">0</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cancelled">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="cancelledBookings">0</span>
+                            <span class="stat-label">Cancelled</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="statusFilter">Status:</label>
+                        <select id="statusFilter">
+                            <option value="all">All Statuses</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="pending">Pending</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="serviceFilter">Service:</label>
+                        <select id="serviceFilter">
+                            <option value="all">All Services</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="dateFilter">Date Range:</label>
+                        <input type="date" id="dateFilter">
+                    </div>
+                    <div class="filter-group search-group">
+                        <input type="text" id="searchBookings" placeholder="Search bookings...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+
+                <!-- Bookings Table -->
+                <div class="table-container">
+                    <table class="bookings-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Service</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookingsTableBody">
+                            <!-- Bookings will be loaded here -->
+                            <tr class="loading-row">
+                                <td colspan="9" class="loading-message">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading bookings...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination">
+                    <button class="page-button" id="prevPage" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                    <button class="page-button" id="nextPage" disabled>
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Services Section -->
+            <section id="services" class="admin-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-concierge-bell"></i> Manage Services</h2>
+                    <button class="primary-button" id="addServiceBtn">
+                        <i class="fas fa-plus"></i> Add Service
+                    </button>
+                </div>
+                <div class="services-grid" id="servicesGrid">
+                    <!-- Services will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="admin-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-cog"></i> Settings</h2>
+                </div>
+                <div class="settings-content">
+                    <div class="settings-section">
+                        <h3>General Settings</h3>
+                        <div class="setting-item">
+                            <label>Business Name</label>
+                            <input type="text" id="businessName" value="Remco van Rooijen Consulting">
+                        </div>
+                        <div class="setting-item">
+                            <label>Business Email</label>
+                            <input type="email" id="businessEmail" value="remco.vanrooijen@email.com">
+                        </div>
+                        <div class="setting-item">
+                            <label>Time Zone</label>
+                            <select id="timeZone">
+                                <option value="Europe/Amsterdam" selected>Europe/Amsterdam (GMT+2)</option>
+                                <option value="UTC">UTC (GMT+0)</option>
+                                <option value="America/New_York">America/New_York (GMT-4)</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Booking Settings</h3>
+                        <div class="setting-item">
+                            <label>Default Duration (minutes)</label>
+                            <input type="number" id="defaultDuration" value="60">
+                        </div>
+                        <div class="setting-item">
+                            <label>Buffer Time (minutes)</label>
+                            <input type="number" id="bufferTime" value="15">
+                        </div>
+                        <div class="setting-item">
+                            <label>Maximum Bookings per Day</label>
+                            <input type="number" id="maxBookingsPerDay" value="8">
+                        </div>
+                    </div>
+                    <div class="settings-section">
+                        <h3>Calendar Settings</h3>
+                        <div class="setting-item">
+                            <label>Working Days</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" checked> Monday</label>
+                                <label><input type="checkbox" checked> Tuesday</label>
+                                <label><input type="checkbox" checked> Wednesday</label>
+                                <label><input type="checkbox" checked> Thursday</label>
+                                <label><input type="checkbox" checked> Friday</label>
+                                <label><input type="checkbox"> Saturday</label>
+                                <label><input type="checkbox"> Sunday</label>
+                            </div>
+                        </div>
+                        <div class="setting-item">
+                            <label>Working Hours</label>
+                            <div class="time-range">
+                                <select id="startTime">
+                                    <option value="09:00" selected>09:00</option>
+                                    <option value="08:00">08:00</option>
+                                    <option value="10:00">10:00</option>
+                                </select>
+                                <span>to</span>
+                                <select id="endTime">
+                                    <option value="17:00" selected>17:00</option>
+                                    <option value="18:00">18:00</option>
+                                    <option value="16:00">16:00</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="primary-button" id="saveSettings">
+                        <i class="fas fa-save"></i> Save Settings
+                    </button>
+                </div>
+            </section>
+
+            <!-- Statistics Section -->
+            <section id="statistics" class="admin-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> Statistics & Analytics</h2>
+                    <div class="date-range-selector">
+                        <select id="statsDateRange">
+                            <option value="week">Last 7 Days</option>
+                            <option value="month" selected>Last 30 Days</option>
+                            <option value="quarter">Last 90 Days</option>
+                            <option value="year">Last Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="stats-grid">
+                    <div class="chart-card">
+                        <h3>Bookings by Service</h3>
+                        <canvas id="serviceChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Bookings by Day</h3>
+                        <canvas id="dayChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Revenue Overview</h3>
+                        <div class="revenue-stats">
+                            <div class="revenue-item">
+                                <span class="revenue-label">Total Revenue</span>
+                                <span class="revenue-value" id="totalRevenue">€0</span>
+                            </div>
+                            <div class="revenue-item">
+                                <span class="revenue-label">Average Booking Value</span>
+                                <span class="revenue-value" id="avgBookingValue">€0</span>
+                            </div>
+                            <div class="revenue-item">
+                                <span class="revenue-label">Most Popular Service</span>
+                                <span class="revenue-value" id="popularService">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Admin Footer -->
+        <footer class="admin-footer">
+            <p>&copy; 2024 Remco van Rooijen Consulting. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- Modal for Booking Details -->
+    <div class="modal" id="bookingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Booking Details</h3>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Booking details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" id="cancelModal">Cancel</button>
+                <button class="primary-button" id="saveModal">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Service -->
+    <div class="modal" id="serviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="serviceModalTitle">Add Service</h3>
+                <button class="modal-close" id="closeServiceModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    <input type="hidden" id="serviceId">
+                    <div class="form-group">
+                        <label for="serviceName">Service Name</label>
+                        <input type="text" id="serviceName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceDescription">Description</label>
+                        <textarea id="serviceDescription" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceDuration">Duration (minutes)</label>
+                        <input type="number" id="serviceDuration" min="15" step="15" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="servicePrice">Price</label>
+                        <input type="text" id="servicePrice" placeholder="€0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="serviceColor">Color</label>
+                        <input type="color" id="serviceColor" value="#2563eb">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="secondary-button" type="button" id="cancelServiceModal">Cancel</button>
+                <button class="primary-button" type="submit" form="serviceForm" id="saveServiceModal">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="toast-icon fas fa-check-circle"></i>
+        <span class="toast-message">Success!</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

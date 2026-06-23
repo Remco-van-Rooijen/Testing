@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "date": "2024-07-15",
+    "time": "10:00",
+    "duration": "60",
+    "service": "SAFe Implementation Consultation",
+    "notes": "Initial assessment for enterprise transformation",
+    "status": "confirmed",
+    "createdAt": "2024-06-20T10:00:00Z",
+    "icsSent": false
+  },
+  {
+    "id": "2",
+    "customerName": "Jane Smith",
+    "customerEmail": "jane.smith@financehub.com",
+    "date": "2024-07-18",
+    "time": "14:30",
+    "duration": "45",
+    "service": "Agile Coaching Session",
+    "notes": "Team coaching for new Scrum Masters",
+    "status": "confirmed",
+    "createdAt": "2024-06-21T11:30:00Z",
+    "icsSent": false
+  }
+]
