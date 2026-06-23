@@ -23,7 +23,100 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData();
 });
 
+async function loadData() {
+    try {
+        // Load bookings
+        const bookingsResponse = await fetch('../data/bookings.json');
+        if (bookingsResponse.ok) {
+            bookings = await bookingsResponse.json();
+        }
+        
+        // Load services
+        const servicesResponse = await fetch('../data/services.json');
+        if (servicesResponse.ok) {
+            services = await servicesResponse.json();
+        }
+        
+        // Initialize sections with loaded data
+        renderBookings();
+        renderServices();
+        renderStatistics();
+        populateServiceFilter();
+        updateBookingStats();
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        showToast('Error loading data. Please refresh the page.', 'error');
+    }
+}
+=======
 // ===== Load Data =====
+async function loadData() {
+    try {
+        // Try to load from API first
+        const bookingsResponse = await fetch('/api/bookings');
+        if (bookingsResponse.ok) {
+            bookings = await bookingsResponse.json();
+        }
+        
+        const servicesResponse = await fetch('/api/services');
+        if (servicesResponse.ok) {
+            services = await servicesResponse.json();
+        }
+        
+        const settingsResponse = await fetch('/api/settings');
+        if (settingsResponse.ok) {
+            const apiSettings = await settingsResponse.json();
+            // Update form fields with settings
+            document.getElementById('businessName').value = apiSettings.businessName || '';
+            document.getElementById('businessEmail').value = apiSettings.businessEmail || '';
+            document.getElementById('timeZone').value = apiSettings.timeZone || 'Europe/Amsterdam';
+            document.getElementById('defaultDuration').value = apiSettings.defaultDuration || 60;
+            document.getElementById('bufferTime').value = apiSettings.bufferTime || 15;
+            document.getElementById('maxBookingsPerDay').value = apiSettings.maxBookingsPerDay || 8;
+            document.getElementById('startTime').value = apiSettings.startTime || '09:00';
+            document.getElementById('endTime').value = apiSettings.endTime || '17:00';
+            
+            // Update working days checkboxes
+            const workingDays = apiSettings.workingDays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            document.querySelectorAll('.checkbox-group input[type="checkbox"]').forEach(cb => {
+                const dayName = cb.nextElementSibling.textContent.trim();
+                cb.checked = workingDays.includes(dayName);
+            });
+        }
+        
+        // Initialize sections with loaded data
+        renderBookings();
+        renderServices();
+        renderStatistics();
+        populateServiceFilter();
+        updateBookingStats();
+        
+    } catch (error) {
+        console.error('Error loading data from API:', error);
+        // Fallback to local files
+        try {
+            const bookingsResponse = await fetch('../data/bookings.json');
+            if (bookingsResponse.ok) {
+                bookings = await bookingsResponse.json();
+            }
+            
+            const servicesResponse = await fetch('../data/services.json');
+            if (servicesResponse.ok) {
+                services = await servicesResponse.json();
+            }
+            
+            renderBookings();
+            renderServices();
+            renderStatistics();
+            populateServiceFilter();
+            updateBookingStats();
+        } catch (fallbackError) {
+            console.error('Error loading fallback data:', fallbackError);
+            showToast('Error loading data. Please refresh the page.', 'error');
+        }
+    }
+}=====
 async function loadData() {
     try {
         // Load bookings
@@ -374,7 +467,7 @@ function editBooking(bookingId) {
     modal.classList.add('active');
 }
 
-function saveBooking() {
+async function saveBooking() {
     if (!currentBookingId) return;
     
     const bookingIndex = bookings.findIndex(b => b.id === currentBookingId);
@@ -392,37 +485,76 @@ function saveBooking() {
         notes: document.getElementById('editNotes').value
     };
     
-    bookings[bookingIndex] = updatedBooking;
-    
-    // Save to file
-    saveBookingsToFile();
-    
-    // Close modal
-    closeModal();
-    
-    // Refresh table
-    renderBookings();
-    
-    showToast('Booking updated successfully!', 'success');
+    try {
+        // Save to server
+        const response = await fetch(`/api/bookings/${currentBookingId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedBooking)
+        });
+        
+        if (response.ok) {
+            const savedBooking = await response.json();
+            bookings[bookingIndex] = savedBooking;
+            
+            // Close modal
+            closeModal();
+            
+            // Refresh table
+            renderBookings();
+            
+            showToast('Booking updated successfully!', 'success');
+        } else {
+            throw new Error('Failed to update booking on server');
+        }
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        // Fallback to local update
+        bookings[bookingIndex] = updatedBooking;
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        closeModal();
+        renderBookings();
+        showToast('Booking updated (local storage only). Server sync failed.', 'success');
+    }
 }
 
-function deleteBooking(bookingId) {
+async function deleteBooking(bookingId) {
     if (!confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
         return;
     }
     
-    const bookingIndex = bookings.findIndex(b => b.id === bookingId);
-    if (bookingIndex === -1) return;
-    
-    bookings.splice(bookingIndex, 1);
-    
-    // Save to file
-    saveBookingsToFile();
-    
-    // Refresh table
-    renderBookings();
-    
-    showToast('Booking deleted successfully!', 'success');
+    try {
+        // Delete from server
+        const response = await fetch(`/api/bookings/${bookingId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            const bookingIndex = bookings.findIndex(b => b.id === bookingId);
+            if (bookingIndex !== -1) {
+                bookings.splice(bookingIndex, 1);
+            }
+            
+            // Refresh table
+            renderBookings();
+            
+            showToast('Booking deleted successfully!', 'success');
+        } else {
+            throw new Error('Failed to delete booking on server');
+        }
+    } catch (error) {
+        console.error('Error deleting booking:', error);
+        // Fallback to local delete
+        const bookingIndex = bookings.findIndex(b => b.id === bookingId);
+        if (bookingIndex !== -1) {
+            bookings.splice(bookingIndex, 1);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+            renderBookings();
+            showToast('Booking deleted (local storage only). Server sync failed.', 'success');
+        }
+    }
 }
 
 function resendICS(bookingId) {
@@ -504,7 +636,7 @@ function editService(serviceId) {
     document.getElementById('serviceModal').classList.add('active');
 }
 
-function saveService() {
+async function saveService() {
     const serviceId = document.getElementById('serviceId').value;
     const serviceData = {
         id: serviceId || Date.now().toString(),
@@ -515,48 +647,109 @@ function saveService() {
         color: document.getElementById('serviceColor').value
     };
     
-    if (serviceId) {
-        // Update existing service
-        const serviceIndex = services.findIndex(s => s.id === serviceId);
-        if (serviceIndex !== -1) {
-            services[serviceIndex] = serviceData;
+    try {
+        if (serviceId) {
+            // Update existing service
+            const response = await fetch(`/api/services/${serviceId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(serviceData)
+            });
+            
+            if (response.ok) {
+                const savedService = await response.json();
+                const serviceIndex = services.findIndex(s => s.id === serviceId);
+                if (serviceIndex !== -1) {
+                    services[serviceIndex] = savedService;
+                }
+            } else {
+                throw new Error('Failed to update service on server');
+            }
+        } else {
+            // Add new service
+            const response = await fetch('/api/services', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(serviceData)
+            });
+            
+            if (response.ok) {
+                const savedService = await response.json();
+                services.push(savedService);
+            } else {
+                throw new Error('Failed to create service on server');
+            }
         }
-    } else {
-        // Add new service
-        services.push(serviceData);
+        
+        // Close modal
+        document.getElementById('serviceModal').classList.remove('active');
+        
+        // Refresh services
+        renderServices();
+        populateServiceFilter();
+        
+        showToast(`Service ${serviceId ? 'updated' : 'added'} successfully!`, 'success');
+        
+    } catch (error) {
+        console.error('Error saving service:', error);
+        // Fallback to local update
+        if (serviceId) {
+            const serviceIndex = services.findIndex(s => s.id === serviceId);
+            if (serviceIndex !== -1) {
+                services[serviceIndex] = serviceData;
+            }
+        } else {
+            services.push(serviceData);
+        }
+        localStorage.setItem('services', JSON.stringify(services));
+        document.getElementById('serviceModal').classList.remove('active');
+        renderServices();
+        populateServiceFilter();
+        showToast(`Service ${serviceId ? 'updated' : 'added'} (local storage only). Server sync failed.`, 'success');
     }
-    
-    // Save to file
-    saveServicesToFile();
-    
-    // Close modal
-    document.getElementById('serviceModal').classList.remove('active');
-    
-    // Refresh services
-    renderServices();
-    populateServiceFilter();
-    
-    showToast(`Service ${serviceId ? 'updated' : 'added'} successfully!`, 'success');
 }
 
-function deleteService(serviceId) {
+async function deleteService(serviceId) {
     if (!confirm('Are you sure you want to delete this service? This will affect existing bookings.')) {
         return;
     }
     
-    const serviceIndex = services.findIndex(s => s.id === serviceId);
-    if (serviceIndex === -1) return;
-    
-    services.splice(serviceIndex, 1);
-    
-    // Save to file
-    saveServicesToFile();
-    
-    // Refresh services
-    renderServices();
-    populateServiceFilter();
-    
-    showToast('Service deleted successfully!', 'success');
+    try {
+        // Delete from server
+        const response = await fetch(`/api/services/${serviceId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            const serviceIndex = services.findIndex(s => s.id === serviceId);
+            if (serviceIndex !== -1) {
+                services.splice(serviceIndex, 1);
+            }
+            
+            // Refresh services
+            renderServices();
+            populateServiceFilter();
+            
+            showToast('Service deleted successfully!', 'success');
+        } else {
+            throw new Error('Failed to delete service on server');
+        }
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        // Fallback to local delete
+        const serviceIndex = services.findIndex(s => s.id === serviceId);
+        if (serviceIndex !== -1) {
+            services.splice(serviceIndex, 1);
+            localStorage.setItem('services', JSON.stringify(services));
+            renderServices();
+            populateServiceFilter();
+            showToast('Service deleted (local storage only). Server sync failed.', 'success');
+        }
+    }
 }
 
 // ===== Settings Section =====
@@ -564,7 +757,7 @@ function initSettingsSection() {
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
 }
 
-function saveSettings() {
+async function saveSettings() {
     const settings = {
         businessName: document.getElementById('businessName').value,
         businessEmail: document.getElementById('businessEmail').value,
@@ -578,10 +771,29 @@ function saveSettings() {
             .map(cb => cb.nextElementSibling.textContent.trim())
     };
     
-    // Save to localStorage
-    localStorage.setItem('consultingSettings', JSON.stringify(settings));
-    
-    showToast('Settings saved successfully!', 'success');
+    try {
+        // Save to server
+        const response = await fetch('/api/settings', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(settings)
+        });
+        
+        if (response.ok) {
+            // Also save to localStorage as fallback
+            localStorage.setItem('consultingSettings', JSON.stringify(settings));
+            showToast('Settings saved successfully!', 'success');
+        } else {
+            throw new Error('Failed to save settings on server');
+        }
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        // Fallback to localStorage
+        localStorage.setItem('consultingSettings', JSON.stringify(settings));
+        showToast('Settings saved (local storage only). Server sync failed.', 'success');
+    }
 }
 
 // ===== Statistics Section =====
@@ -802,39 +1014,55 @@ function showToast(message, type = 'success') {
 // ===== File Operations =====
 async function saveBookingsToFile() {
     try {
-        // In a real application, you would send this to a server
-        // For this demo, we'll use localStorage as a fallback
+        // Save to server via API
+        const response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookings)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to save to server');
+        }
+        
+        // Also save to localStorage as fallback
         localStorage.setItem('bookings', JSON.stringify(bookings));
         
-        // Also try to save to file (works in some environments)
-        const blob = new Blob([JSON.stringify(bookings, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'bookings.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        
     } catch (error) {
-        console.error('Error saving bookings:', error);
+        console.error('Error saving bookings to server:', error);
+        // Fallback to localStorage
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        showToast('Saved to local storage. Server sync failed.', 'error');
     }
 }
 
 async function saveServicesToFile() {
     try {
+        // Save each service individually to ensure proper IDs
+        for (const service of services) {
+            const response = await fetch(`/api/services/${service.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(service)
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Failed to save service ${service.id}`);
+            }
+        }
+        
+        // Also save to localStorage as fallback
         localStorage.setItem('services', JSON.stringify(services));
         
-        // Also try to save to file
-        const blob = new Blob([JSON.stringify(services, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'services.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        
     } catch (error) {
-        console.error('Error saving services:', error);
+        console.error('Error saving services to server:', error);
+        // Fallback to localStorage
+        localStorage.setItem('services', JSON.stringify(services));
+        showToast('Saved to local storage. Server sync failed.', 'error');
     }
 }
 

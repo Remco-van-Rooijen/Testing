@@ -29,7 +29,95 @@ document.addEventListener('DOMContentLoaded', function() {
     initBackToTop();
 });
 
+async function loadData() {
+    try {
+        // Load services
+        const servicesResponse = await fetch('../data/services.json');
+        if (servicesResponse.ok) {
+            services = await servicesResponse.json();
+            renderServices();
+        }
+        
+        // Load bookings
+        const bookingsResponse = await fetch('../data/bookings.json');
+        if (bookingsResponse.ok) {
+            bookings = await bookingsResponse.json();
+            renderCalendar();
+            updateTimeSlots();
+        }
+        
+        // Load settings from localStorage
+        const savedSettings = localStorage.getItem('consultingSettings');
+        if (savedSettings) {
+            settings = { ...settings, ...JSON.parse(savedSettings) };
+        }
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        // Fallback to localStorage
+        const savedServices = localStorage.getItem('services');
+        if (savedServices) {
+            services = JSON.parse(savedServices);
+            renderServices();
+        }
+        const savedBookings = localStorage.getItem('bookings');
+        if (savedBookings) {
+            bookings = JSON.parse(savedBookings);
+            renderCalendar();
+            updateTimeSlots();
+        }
+    }
+}
+=======
 // ===== Load Data =====
+async function loadData() {
+    try {
+        // Try to load from API first
+        const servicesResponse = await fetch('/api/services');
+        if (servicesResponse.ok) {
+            services = await servicesResponse.json();
+            renderServices();
+        }
+        
+        const bookingsResponse = await fetch('/api/bookings');
+        if (bookingsResponse.ok) {
+            bookings = await bookingsResponse.json();
+            renderCalendar();
+            updateTimeSlots();
+        }
+        
+        const settingsResponse = await fetch('/api/settings');
+        if (settingsResponse.ok) {
+            const apiSettings = await settingsResponse.json();
+            settings = { ...settings, ...apiSettings };
+        }
+        
+    } catch (error) {
+        console.error('Error loading data from API:', error);
+        // Fallback to local files (for development without server)
+        try {
+            const servicesResponse = await fetch('../data/services.json');
+            if (servicesResponse.ok) {
+                services = await servicesResponse.json();
+                renderServices();
+            }
+            
+            const bookingsResponse = await fetch('../data/bookings.json');
+            if (bookingsResponse.ok) {
+                bookings = await bookingsResponse.json();
+                renderCalendar();
+                updateTimeSlots();
+            }
+            
+            const savedSettings = localStorage.getItem('consultingSettings');
+            if (savedSettings) {
+                settings = { ...settings, ...JSON.parse(savedSettings) };
+            }
+        } catch (fallbackError) {
+            console.error('Error loading fallback data:', fallbackError);
+        }
+    }
+}=====
 async function loadData() {
     try {
         // Load services
@@ -424,11 +512,33 @@ function submitBooking() {
             icsSent: false
         };
         
-        // Add to bookings
+        // Add to bookings (local state)
         bookings.push(newBooking);
         
-        // Save to localStorage (fallback)
-        localStorage.setItem('bookings', JSON.stringify(bookings));
+        // Save to server
+        try {
+            const response = await fetch('/api/bookings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(newBooking)
+            });
+            
+            if (response.ok) {
+                const savedBooking = await response.json();
+                // Update local state with server response (including generated ID)
+                newBooking.id = savedBooking.id;
+            } else {
+                console.error('Failed to save booking to server');
+                // Fallback to localStorage
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+            }
+        } catch (error) {
+            console.error('Error saving to server:', error);
+            // Fallback to localStorage
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+        }
         
         // Generate ICS file
         const icsContent = generateICSContent(newBooking);
